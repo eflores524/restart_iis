@@ -38,7 +38,7 @@
       register: webapp_check
       failed_when: webapp_check.status != 200
 
-    - name: "Display restart results"
+    - name: "Display web app check results"
       ansible.builtin.debug:
         msg: "Service status {{ inventory_hostname }}: {{ webapp_check }}"
 
