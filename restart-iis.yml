@@ -1,7 +1,7 @@
 ---
 
 - name: "Restart IIS on target servers"
-  hosts: iis_servers
+  hosts: all
   serial: 2                  # Process two hosts at a time for a staggered rollout
   gather_facts: no           # Set to yes if you need Windows facts
 
