@@ -1,0 +1,45 @@
+---
+
+- name: "Restart IIS on target servers"
+  hosts: iis_servers
+  serial: 2                  # Process two hosts at a time for a staggered rollout
+  gather_facts: no           # Set to yes if you need Windows facts
+
+  tasks:
+    - name: "Splay: wait a random delay before acting"
+      ansible.builtin.pause:
+        seconds: "{{ 1 + (10 | random) }}"
+      # This adds a random delay between 1 and 10 seconds for each host
+
+    - name: "Restart IIS (W3SVC) service"
+      ansible.windows.win_service:
+        name: W3SVC
+        state: restarted
+      register: restart_result
+
+    - name: "Confirm IIS service is running"
+      ansible.windows.win_service:
+        name: W3SVC
+        state: started
+      register: service_status
+
+    - name: "Display restart results"
+      ansible.builtin.debug:
+        msg: >
+          IIS restart task completed on {{ inventory_hostname }}:
+          Restart result: {{ restart_result }}
+          Service status: {{ service_status }}
+
+    # is there a specific endpoint on host to get status ? 
+    - name: "Check web application"
+      ansible.builtin.uri:
+        url: "http://{{ inventory_hostname }}"
+        return_content: true
+      register: webapp_check
+      failed_when: webapp_check.status != 200
+
+    - name: "Display restart results"
+      ansible.builtin.debug:
+        msg: "Service status {{ inventory_hostname }}: {{ webapp_check }}"
+
+
